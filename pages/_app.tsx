@@ -8,7 +8,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryClientProvider } from "@tanstack/react-query";
 
 // clients
-import { queryClient } from "../src/lib/react-query";
+import { queryClient } from "@/lib/react-query";
 
 // types
 import type { AppProps } from "next/app";

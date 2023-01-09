@@ -3,10 +3,10 @@ import Head from "next/head";
 import { Inter } from "@next/font/google";
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "../src/lib/react-query";
+import { queryKeys } from "@/lib/react-query";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSideProps } from "next";
-import { AccountsApi } from "../src/lib/supabase/api";
+import { AccountsApi } from "@/lib/supabase/api";
 
 const inter = Inter({ subsets: ["latin"] });
 
