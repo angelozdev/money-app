@@ -12,53 +12,62 @@ export interface Database {
       accounts: {
         Row: {
           id: string;
-          created_at: string | null;
+          created_at: string;
+          name: string;
+          amount: number;
           type: string;
-          title: string;
           user_id: string;
         };
         Insert: {
           id?: string;
-          created_at?: string | null;
+          created_at?: string;
+          name?: string;
+          amount?: number;
           type: string;
-          title?: string;
           user_id: string;
         };
         Update: {
           id?: string;
-          created_at?: string | null;
+          created_at?: string;
+          name?: string;
+          amount?: number;
           type?: string;
-          title?: string;
           user_id?: string;
         };
       };
       transactions: {
         Row: {
           id: string;
-          date: string;
+          created_at: string;
           type: string;
-          title: string;
-          entity: string | null;
-          account: string;
           amount: number;
+          date: string;
+          name: string;
+          description: string | null;
+          entity: string | null;
+          account_id: string;
         };
         Insert: {
           id?: string;
-          date?: string;
+          created_at?: string;
           type: string;
-          title?: string;
+          amount: number;
+          date?: string;
+          name: string;
+          description?: string | null;
           entity?: string | null;
-          account: string;
-          amount?: number;
+          account_id: string;
         };
         Update: {
           id?: string;
-          date?: string;
+          created_at?: string;
           type?: string;
-          title?: string;
-          entity?: string | null;
-          account?: string;
           amount?: number;
+          date?: string;
+          name?: string;
+          description?: string | null;
+          entity?: string | null;
+          account_id?: string;
         };
       };
     };

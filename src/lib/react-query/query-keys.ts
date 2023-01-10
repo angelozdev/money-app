@@ -1,5 +1,10 @@
 const queryKeys = {
-  accounts: ["accounts"],
+  accounts: () => ["accounts"],
+  transactionsByAccounts: (ids: string[]) => [
+    "transactions",
+    "byAccounts",
+    ids,
+  ],
 };
 
 export default queryKeys;

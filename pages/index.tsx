@@ -6,25 +6,59 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/react-query";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSideProps } from "next";
-import { AccountsApi } from "@/lib/supabase/api";
+import {
+  AccountsApi,
+  TransactionsApi,
+  useAccountApi,
+  useTransactionsApi,
+} from "@/lib/supabase/api";
+import { Button, Card, Loading } from "@nextui-org/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
 interface Props {
-  accounts: Awaited<ReturnType<typeof AccountsApi.getMany>>;
+  accounts: Awaited<ReturnType<AccountsApi["getMany"]>>;
+  transactionsByAccount: Awaited<
+    ReturnType<TransactionsApi["getManyByAccount"]>
+  >[];
 }
 
-export default function Home({ accounts }: Props) {
+export default function Home({ accounts, transactionsByAccount }: Props) {
   const user = useUser();
   const supabase = useSupabaseClient();
+  const accountsApi = useAccountApi();
+  const transactionsApi = useTransactionsApi();
+
   const accountsQuery = useQuery(
-    queryKeys.accounts,
-    () => AccountsApi.getMany(supabase),
+    queryKeys.accounts(),
+    () => accountsApi.getMany(),
     {
       initialData: accounts,
       staleTime: 1000 * 60 * 60,
     }
   );
+
+  const haveAccounts = accountsQuery.data.length > 0;
+
+  const transactionsQuery = useQuery(
+    queryKeys.transactionsByAccounts(
+      accountsQuery.data.map((account) => account.id)
+    ),
+    () =>
+      Promise.all(
+        accounts.map((account) => transactionsApi.getManyByAccount(account.id))
+      ),
+    {
+      initialData: transactionsByAccount,
+      staleTime: 1000 * 60 * 60,
+      enabled: haveAccounts,
+    }
+  );
+
+  const refetch = () => {
+    accountsQuery.refetch();
+    transactionsQuery.refetch();
+  };
 
   React.useEffect(() => {
     supabase.auth.signInWithPassword({
@@ -33,7 +67,7 @@ export default function Home({ accounts }: Props) {
     });
   }, [supabase.auth]);
 
-  if (!user) return <div>Not logged in</div>;
+  if (!user) return <Loading />;
 
   return (
     <>
@@ -45,10 +79,26 @@ export default function Home({ accounts }: Props) {
       </Head>
       <main className={inter.className}>
         <h1>Welcome to Next.js!</h1>
+        <Button onClick={refetch}>Refetch</Button>
 
         <ul>
-          {accountsQuery.data?.map((account) => (
-            <li key={account.id}>{account.title}</li>
+          {accountsQuery.data?.map((account, index) => (
+            <Card as="li" key={account.id}>
+              <Card.Header>
+                <span>
+                  {account.name} - {account.amount}
+                </span>
+              </Card.Header>
+
+              <Card.Body as="ul" css={{ p: "sm", m: 0 }}>
+                {transactionsQuery.data[index]?.map((transaction) => (
+                  <li key={transaction.id}>
+                    {transaction.name} - {transaction.amount} -{" "}
+                    {transaction.type}
+                  </li>
+                ))}
+              </Card.Body>
+            </Card>
           ))}
         </ul>
       </main>
@@ -60,11 +110,18 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
   context
 ) => {
   const supabase = createServerSupabaseClient(context);
-  const accounts = await AccountsApi.getMany(supabase);
+  const accountsApi = AccountsApi.getInstance(supabase);
+  const transactionsApi = TransactionsApi.getInstance(supabase);
+
+  const accounts = await accountsApi.getMany();
+  const transactionsByAccount = await Promise.all(
+    accounts.map((account) => transactionsApi.getManyByAccount(account.id))
+  );
 
   return {
     props: {
-      accounts: accounts ?? [],
+      accounts,
+      transactionsByAccount,
     },
   };
 };
